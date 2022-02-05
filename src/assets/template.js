@@ -1,23 +1,23 @@
 export const template = `
-<div class="picker" style="--color: green;">
-  <div class="picker-area picker-control-area">
-    <div class="picker-control-point" data-type="color-picker"></div>
+<div class="ras-color-picker" style="--color: green;">
+  <div class="ras-color-picker-area ras-color-picker-control-area">
+    <div class="ras-color-picker-control-point" data-type="color-picker"></div>
   </div>
-  <div class="picker-line picker-control-area picker-color-line">
-    <div class="picker-control-point" data-type="color-line"></div>
+  <div class="ras-color-picker-line ras-color-picker-control-area ras-color-picker-color-line">
+    <div class="ras-color-picker-control-point" data-type="color-line"></div>
   </div>
-  <div class="picker-line picker-control-area picker-alpha-line picker-alpha-bg ">
-    <div class="picker-control-point picker-alpha-bg" data-type="alpha">
-      <div class="picker-color-alpha"></div>
+  <div class="ras-color-picker-line ras-color-picker-control-area ras-color-picker-alpha-line ras-color-picker-alpha-bg ">
+    <div class="ras-color-picker-control-point ras-color-picker-alpha-bg" data-type="alpha">
+      <div class="ras-color-picker-color-alpha"></div>
     </div>
-    <div class="picker-alpha-gradient"></div>
+    <div class="ras-color-picker-alpha-gradient"></div>
   </div>
-  <div class="picker-inputs">
-    <div class="picker-current-color picker-alpha-bg">
-      <div class="picker-color-alpha"></div>
+  <div class="ras-color-picker-inputs">
+    <div class="ras-color-picker-current-color ras-color-picker-alpha-bg">
+      <div class="ras-color-picker-color-alpha"></div>
     </div>
-    <input class="picker-input picker-color-input" />
-    <input class="picker-input picker-alpha-input" min="0" max="100" type="number" />
+    <input class="ras-color-picker-input ras-color-picker-color-input" />
+    <input class="ras-color-picker-input ras-color-picker-alpha-input" min="0" max="100" type="number" />
   </div>
 </div>
 `;

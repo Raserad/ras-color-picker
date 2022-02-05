@@ -10,18 +10,18 @@ export class ColorPicker {
     }
   ) {
     options.el.innerHTML = template;
-    this.$pickerBox = options.el.querySelector(".picker");
+    this.$pickerBox = options.el.querySelector(".ras-color-picker");
     this.$colorPicker = options.el.querySelector(
-      ".picker-area .picker-control-point"
+      ".ras-color-picker-area .ras-color-picker-control-point"
     );
     this.$colorSlider = options.el.querySelector(
-      ".picker-color-line .picker-control-point"
+      ".ras-color-picker-color-line .ras-color-picker-control-point"
     );
     this.$alphaSlider = options.el.querySelector(
-      ".picker-alpha-line .picker-control-point"
+      ".ras-color-picker-alpha-line .ras-color-picker-control-point"
     );
-    this.$colorValue = options.el.querySelector(".picker-color-input");
-    this.$alphaValue = options.el.querySelector(".picker-alpha-input");
+    this.$colorValue = options.el.querySelector(".ras-color-picker-color-input");
+    this.$alphaValue = options.el.querySelector(".ras-color-picker-alpha-input");
     this.convertColorToValues(options.color);
 
     window.addEventListener("mousedown", this.onMouseDown.bind(this));
@@ -31,7 +31,7 @@ export class ColorPicker {
     });
     this.$alphaValue.addEventListener("input", () => {
       const value = this.$alphaValue.value;
-      this.alphaSlider = Math.min(100, Math.max(0, value));
+      this.alphaSliderValue = Math.min(100, Math.max(0, value));
       this.showCurrentColors();
       this.showCurrentColorValues();
     });
@@ -41,9 +41,9 @@ export class ColorPicker {
     const rgba = strToRgba(color);
     const hsva = rgbaToHsva(rgba);
 
-    this.colorSlider = hsva.h;
-    this.alphaSlider = Math.round(hsva.a * 100);
-    this.picker = {
+    this.colorSliderValue = hsva.h;
+    this.alphaSliderValue = Math.round(hsva.a * 100);
+    this.colorPickerValue = {
       x: hsva.s,
       y: hsva.v
     };
@@ -53,10 +53,10 @@ export class ColorPicker {
 
   showCurrentColors() {
     const hsva = {
-      h: this.colorSlider,
-      s: this.picker.x,
-      v: this.picker.y,
-      a: this.alphaSlider / 100
+      h: this.colorSliderValue,
+      s: this.colorPickerValue.x,
+      v: this.colorPickerValue.y,
+      a: this.alphaSliderValue / 100
     };
     const rgba = hsvaToRgba(hsva);
     const color = `rgba(${rgba.r}, ${rgba.g}, ${rgba.b})`;
@@ -68,35 +68,35 @@ export class ColorPicker {
     );
     this.$pickerBox.style.setProperty(
       "--color",
-      `hsl(${this.colorSlider}, 100%, 50%)`
+      `hsl(${this.colorSliderValue}, 100%, 50%)`
     );
 
     const colorPickerBox = this.$colorPicker.parentElement.getBoundingClientRect();
     this.$colorPicker.style.left = `${
-      (this.picker.x / 100) * colorPickerBox.width
+      (this.colorPickerValue.x / 100) * colorPickerBox.width
     }px`;
     this.$colorPicker.style.top = `${
-      colorPickerBox.height - (this.picker.y / 100) * colorPickerBox.height
+      colorPickerBox.height - (this.colorPickerValue.y / 100) * colorPickerBox.height
     }px`;
 
     const colorSliderBox = this.$colorSlider.parentElement.getBoundingClientRect();
     this.$colorSlider.style.left = `${
-      (this.colorSlider / 100 / 3.6) * colorSliderBox.width
+      (this.colorSliderValue / 100 / 3.6) * colorSliderBox.width
     }px`;
 
     const alphaSliderBox = this.$alphaSlider.parentElement.getBoundingClientRect();
     this.$alphaSlider.style.left = `${
-      (this.alphaSlider / 100) * alphaSliderBox.width
+      (this.alphaSliderValue / 100) * alphaSliderBox.width
     }px`;
   }
 
   showCurrentColorValues() {
-    this.$alphaValue.value = this.alphaSlider;
+    this.$alphaValue.value = this.alphaSliderValue;
     const hsva = {
-      h: this.colorSlider,
-      s: this.picker.x,
-      v: this.picker.y,
-      a: this.alphaSlider / 100
+      h: this.colorSliderValue,
+      s: this.colorPickerValue.x,
+      v: this.colorPickerValue.y,
+      a: this.alphaSliderValue / 100
     };
     const rgba = hsvaToRgba(hsva);
     const hex = rgbaToHex(rgba);
@@ -108,7 +108,7 @@ export class ColorPicker {
     const x = Math.min(Math.max(0, event.pageX - box.left), box.width);
     const y = Math.min(Math.max(0, event.pageY - box.top), box.height);
 
-    this.picker = {
+    this.colorPickerValue = {
       x: (x / box.width) * 100,
       y: 100 - (y / box.height) * 100
     };
@@ -120,7 +120,7 @@ export class ColorPicker {
     const box = target.parentNode.getBoundingClientRect();
     const x = Math.min(Math.max(0, event.pageX - box.left), box.width);
 
-    this.colorSlider = Math.round((x / box.width) * 100 * 3.6);
+    this.colorSliderValue = Math.round((x / box.width) * 100 * 3.6);
     this.showCurrentColors();
     this.showCurrentColorValues();
   }
@@ -129,7 +129,7 @@ export class ColorPicker {
     const box = target.parentNode.getBoundingClientRect();
     const x = Math.min(Math.max(0, event.pageX - box.left), box.width);
 
-    this.alphaSlider = Math.round((x / box.width) * 100);
+    this.alphaSliderValue = Math.round((x / box.width) * 100);
     this.showCurrentColors();
     this.showCurrentColorValues();
   }
@@ -148,11 +148,11 @@ export class ColorPicker {
   }
 
   onMouseDown(event) {
-    let target = event.target.closest(".picker-control-point");
+    let target = event.target.closest(".ras-color-picker-control-point");
     if (!target) {
-      const area = event.target.closest(".picker-control-area");
+      const area = event.target.closest(".ras-color-picker-control-area");
       if (area) {
-        target = area.querySelector(".picker-control-point");
+        target = area.querySelector(".ras-color-picker-control-point");
       } else {
         return;
       }
@@ -181,8 +181,3 @@ export class ColorPicker {
     this.onControllerMove(event, target, type);
   }
 }
-
-new ColorPicker({
-  el: document.body,
-  color: "#fffaaa"
-});

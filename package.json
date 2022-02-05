@@ -1,11 +1,14 @@
 {
   "name": "color-picker",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.0.1",
+  "description": "Color picker library",
   "main": "./src/index.js",
+  "repository": "https://github.com/Raserad/ras-color-picker",
+  "author": "Raserad",
+  "license": "MIT",
+  "private": false,
   "scripts": {
-    "start": "parcel index.html --open",
-    "build": "parcel build index.html"
+    "build": "parcel build ./src/index.js"
   },
   "dependencies": {
     "parcel-bundler": "^1.6.1"
