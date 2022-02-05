@@ -6,35 +6,54 @@ export class ColorPicker {
   constructor(
     options = {
       el: document.createElement("div"),
-      color: "rgba(255, 255, 255, 1)"
+      color: "rgba(255, 255, 255, 1)",
+      onChange: (color) => {}
     }
   ) {
-    options.el.innerHTML = template;
-    this.$pickerBox = options.el.querySelector(".ras-color-picker");
-    this.$colorPicker = options.el.querySelector(
+    const $element =
+      typeof options.el === "string"
+        ? document.querySelector(options.el)
+        : options.el;
+    $element.innerHTML = template;
+    this.$pickerBox = $element.querySelector(".ras-color-picker");
+    this.$colorPicker = $element.querySelector(
       ".ras-color-picker-area .ras-color-picker-control-point"
     );
-    this.$colorSlider = options.el.querySelector(
+    this.$colorSlider = $element.querySelector(
       ".ras-color-picker-color-line .ras-color-picker-control-point"
     );
-    this.$alphaSlider = options.el.querySelector(
+    this.$alphaSlider = $element.querySelector(
       ".ras-color-picker-alpha-line .ras-color-picker-control-point"
     );
-    this.$colorValue = options.el.querySelector(".ras-color-picker-color-input");
-    this.$alphaValue = options.el.querySelector(".ras-color-picker-alpha-input");
+    this.$colorValue = $element.querySelector(".ras-color-picker-color-input");
+    this.$alphaValue = $element.querySelector(".ras-color-picker-alpha-input");
     this.convertColorToValues(options.color);
 
     window.addEventListener("mousedown", this.onMouseDown.bind(this));
 
-    this.$colorValue.addEventListener("change", () => {
+    this.$colorValue.addEventListener("input", () => {
       this.convertColorToValues(this.$colorValue.value);
+      this.showCurrentColors();
+      this.showAlphaValue();
+      this.emitChanges();
     });
     this.$alphaValue.addEventListener("input", () => {
       const value = this.$alphaValue.value;
       this.alphaSliderValue = Math.min(100, Math.max(0, value));
       this.showCurrentColors();
-      this.showCurrentColorValues();
+      this.showColorValue();
+      this.emitChanges();
     });
+    this.onChange = options.onChange;
+
+    this.showCurrentColors();
+    this.showColorValue();
+    this.showAlphaValue();
+  }
+
+  emitChanges() {
+    const hex = this.getCurrentColorHex()
+    this.onChange(hex)
   }
 
   convertColorToValues(color) {
@@ -47,8 +66,6 @@ export class ColorPicker {
       x: hsva.s,
       y: hsva.v
     };
-    this.showCurrentColors();
-    this.showCurrentColorValues();
   }
 
   showCurrentColors() {
@@ -90,8 +107,11 @@ export class ColorPicker {
     }px`;
   }
 
-  showCurrentColorValues() {
+  showAlphaValue() {
     this.$alphaValue.value = this.alphaSliderValue;
+  }
+
+  getCurrentColorHex() {
     const hsva = {
       h: this.colorSliderValue,
       s: this.colorPickerValue.x,
@@ -99,7 +119,11 @@ export class ColorPicker {
       a: this.alphaSliderValue / 100
     };
     const rgba = hsvaToRgba(hsva);
-    const hex = rgbaToHex(rgba);
+    return rgbaToHex(rgba);
+  }
+
+  showColorValue() {
+    const hex = this.getCurrentColorHex()
     this.$colorValue.value = hex;
   }
 
@@ -113,7 +137,9 @@ export class ColorPicker {
       y: 100 - (y / box.height) * 100
     };
     this.showCurrentColors();
-    this.showCurrentColorValues();
+    this.showColorValue();
+    this.showAlphaValue();
+    this.emitChanges();
   }
 
   onColorLineMove(event, target) {
@@ -122,7 +148,9 @@ export class ColorPicker {
 
     this.colorSliderValue = Math.round((x / box.width) * 100 * 3.6);
     this.showCurrentColors();
-    this.showCurrentColorValues();
+    this.showColorValue();
+    this.showAlphaValue();
+    this.emitChanges();
   }
 
   onAlphaMove(event, target) {
@@ -131,7 +159,9 @@ export class ColorPicker {
 
     this.alphaSliderValue = Math.round((x / box.width) * 100);
     this.showCurrentColors();
-    this.showCurrentColorValues();
+    this.showColorValue();
+    this.showAlphaValue();
+    this.emitChanges();
   }
 
   onControllerMove(event, target, type) {
