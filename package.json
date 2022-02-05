@@ -1,6 +1,6 @@
 {
-  "name": "color-picker",
-  "version": "0.0.1",
+  "name": "ras-color-picker",
+  "version": "0.0.2",
   "description": "Color picker library",
   "main": "./src/index.js",
   "repository": "https://github.com/Raserad/ras-color-picker",
