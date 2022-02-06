@@ -1,6 +1,6 @@
 import "./assets/styles.css";
 import { template } from "./assets/template";
-import { hsvaToRgba, rgbaToHex, rgbaToHsva, strToRgba } from "./helpers";
+import { hsvaToRgba, rgbaToHex, rgbaToHsva, strToRgba, debounce } from "./helpers";
 
 export class ColorPicker {
   constructor(
@@ -27,8 +27,7 @@ export class ColorPicker {
     );
     this.$colorValue = $element.querySelector(".ras-color-picker-color-input");
     this.$alphaValue = $element.querySelector(".ras-color-picker-alpha-input");
-    this.convertColorToValues(options.color);
-    
+
     this.$colorPicker.parentElement.addEventListener(
       "mousedown",
       this.onMouseDown.bind(this)
@@ -55,11 +54,9 @@ export class ColorPicker {
       this.showColorValue();
       this.emitChanges();
     });
-    this.onChange = options.onChange;
+    this.onChange = debounce(options.onChange, 0);
 
-    this.showCurrentColors();
-    this.showColorValue();
-    this.showAlphaValue();
+    this.setColor(options.color);
   }
 
   destroy() {
@@ -67,9 +64,19 @@ export class ColorPicker {
     this.onChange = null;
   }
 
+  setColor(color, isNotify = false) {
+    this.convertColorToValues(color);
+    this.showCurrentColors();
+    this.showColorValue();
+    this.showAlphaValue();
+    if (isNotify) {
+      this.emitChanges()
+    }
+  }
+
   emitChanges() {
-    const hex = this.getCurrentColorHex()
-    this.onChange(hex)
+    const hex = this.getCurrentColorHex();
+    this.onChange(hex);
   }
 
   convertColorToValues(color) {
@@ -145,8 +152,8 @@ export class ColorPicker {
 
   onColorPickerMove(event, target) {
     const box = target.parentNode.getBoundingClientRect();
-    const x = Math.min(Math.max(0, event.pageX - box.left), box.width);
-    const y = Math.min(Math.max(0, event.pageY - box.top), box.height);
+    const x = Math.min(Math.max(0, event.clientX - box.left), box.width);
+    const y = Math.min(Math.max(0, event.clientY - box.top), box.height);
 
     this.colorPickerValue = {
       x: (x / box.width) * 100,
@@ -160,7 +167,7 @@ export class ColorPicker {
 
   onColorLineMove(event, target) {
     const box = target.parentNode.getBoundingClientRect();
-    const x = Math.min(Math.max(0, event.pageX - box.left), box.width);
+    const x = Math.min(Math.max(0, event.clientX - box.left), box.width);
 
     this.colorSliderValue = Math.round((x / box.width) * 100 * 3.6);
     this.showCurrentColors();
@@ -171,7 +178,7 @@ export class ColorPicker {
 
   onAlphaMove(event, target) {
     const box = target.parentNode.getBoundingClientRect();
-    const x = Math.min(Math.max(0, event.pageX - box.left), box.width);
+    const x = Math.min(Math.max(0, event.clientX - box.left), box.width);
 
     this.alphaSliderValue = Math.round((x / box.width) * 100);
     this.showCurrentColors();
