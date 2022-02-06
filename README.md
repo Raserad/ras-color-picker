@@ -1,2 +1,2 @@
 # ras-color-picker
-Created with CodeSandbox
+Color picker library

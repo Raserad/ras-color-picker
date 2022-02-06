@@ -28,8 +28,19 @@ export class ColorPicker {
     this.$colorValue = $element.querySelector(".ras-color-picker-color-input");
     this.$alphaValue = $element.querySelector(".ras-color-picker-alpha-input");
     this.convertColorToValues(options.color);
-
-    window.addEventListener("mousedown", this.onMouseDown.bind(this));
+    
+    this.$colorPicker.parentElement.addEventListener(
+      "mousedown",
+      this.onMouseDown.bind(this)
+    );
+    this.$colorSlider.parentElement.addEventListener(
+      "mousedown",
+      this.onMouseDown.bind(this)
+    );
+    this.$alphaSlider.parentElement.addEventListener(
+      "mousedown",
+      this.onMouseDown.bind(this)
+    );
 
     this.$colorValue.addEventListener("input", () => {
       this.convertColorToValues(this.$colorValue.value);
@@ -49,6 +60,11 @@ export class ColorPicker {
     this.showCurrentColors();
     this.showColorValue();
     this.showAlphaValue();
+  }
+
+  destroy() {
+    this.$pickerBox.remove();
+    this.onChange = null;
   }
 
   emitChanges() {
