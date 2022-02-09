@@ -56,6 +56,8 @@ export class ColorPicker {
     });
     this.onChange = debounce(options.onChange, 0);
 
+    this.prevColor = ''
+
     this.setColor(options.color);
   }
 
@@ -66,6 +68,7 @@ export class ColorPicker {
 
   setColor(color, isNotify = false) {
     this.convertColorToValues(color);
+    this.prevColor = this.getCurrentColorHex()
     this.showCurrentColors();
     this.showColorValue();
     this.showAlphaValue();
@@ -76,6 +79,10 @@ export class ColorPicker {
 
   emitChanges() {
     const hex = this.getCurrentColorHex();
+    if (this.prevColor == hex) {
+      return;
+    }
+    this.prevColor = hex;
     this.onChange(hex);
   }
 
