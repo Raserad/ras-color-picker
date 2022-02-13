@@ -54,11 +54,15 @@ export class ColorPicker {
       this.showColorValue();
       this.emitChanges();
     });
-    this.onChange = debounce(options.onChange, 0);
+    this.setOnChange(options.onChange);
 
     this.prevColor = ''
 
     this.setColor(options.color);
+  }
+
+  setOnChange(onChange = (color) => {}) {
+    this.onChange = debounce(onChange, 0);
   }
 
   destroy() {
@@ -83,7 +87,7 @@ export class ColorPicker {
       return;
     }
     this.prevColor = hex;
-    this.onChange(hex);
+    this.onChange(hex, this);
   }
 
   convertColorToValues(color) {
