@@ -1,8 +1,9 @@
 {
   "name": "ras-color-picker",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "description": "Color picker library",
-  "main": "./src/index.js",
+  "main": "src/index.js",
+  "types": "types/index.d.ts",
   "repository": "https://github.com/Raserad/ras-color-picker",
   "author": "Raserad",
   "license": "MIT",
