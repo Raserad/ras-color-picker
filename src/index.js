@@ -7,13 +7,34 @@ export class ColorPicker {
     options = {
       el: document.createElement("div"),
       color: "rgba(255, 255, 255, 1)",
-      onChange: (color) => {}
+      onChange: (color, picker) => {}
     }
   ) {
-    const $element =
+    let $element =
       typeof options.el === "string"
         ? document.querySelector(options.el)
         : options.el;
+    if ($element.tagName == 'INPUT') {
+      const $wrapper = document.createElement('div')
+      $element.parentNode.insertBefore($wrapper, $element)
+      $wrapper.appendChild($element)
+      this.$input = $element
+      this.$input.addEventListener('focus', () => {
+        this.$pickerBox.style.zIndex = 99
+        this.$pickerBox.style.display = 'block'
+        requestAnimationFrame(() => {
+          this.showCurrentColors()
+        })
+      })
+      this.hideWrapper = this.hideWrapper.bind(this)
+      document.addEventListener('mousedown', this.hideWrapper)
+      $element = document.createElement('div')
+      $wrapper.appendChild($element)
+      this.$wrapper = $wrapper
+    } else {
+      this.$wrapper = $element
+    }
+    this.$wrapper.classList.add('ras-color-picker-wrapper')
     $element.innerHTML = template;
     this.$pickerBox = $element.querySelector(".ras-color-picker");
     this.$colorPicker = $element.querySelector(
@@ -25,7 +46,22 @@ export class ColorPicker {
     this.$alphaSlider = $element.querySelector(
       ".ras-color-picker-alpha-line .ras-color-picker-control-point"
     );
-    this.$colorValue = $element.querySelector(".ras-color-picker-color-input");
+    if (this.$input) {
+      this.$colorValue = this.$input
+      $element.querySelector(".ras-color-picker-color-input").remove()
+      const $indicator = $element.querySelector('.ras-color-picker-current-color')
+      $indicator.style.display = 'inline-block'
+      this.$wrapper.insertBefore($indicator, this.$input)
+      $element.querySelector('.ras-color-picker-inputs').remove()
+      this.$wrapper.style.position = 'relative'
+      this.$wrapper.style.display = 'inline-flex'
+      this.$wrapper.style.gap = '10px'
+      this.$pickerBox.style.position = 'absolute'
+      this.$pickerBox.style.left = 0
+      this.$pickerBox.style.top = '100%'
+    } else {
+      this.$colorValue = $element.querySelector(".ras-color-picker-color-input");
+    }
     this.$alphaValue = $element.querySelector(".ras-color-picker-alpha-input");
 
     this.$colorPicker.parentElement.addEventListener(
@@ -41,38 +77,54 @@ export class ColorPicker {
       this.onMouseDown.bind(this)
     );
 
-    this.$colorValue.addEventListener("input", () => {
-      this.convertColorToValues(this.$colorValue.value);
-      this.showCurrentColors();
-      this.showAlphaValue();
-      this.emitChanges();
-    });
-    this.$alphaValue.addEventListener("input", () => {
-      const value = this.$alphaValue.value;
-      this.alphaSliderValue = Math.min(100, Math.max(0, value));
-      this.showCurrentColors();
-      this.showColorValue();
-      this.emitChanges();
-    });
-    this.setOnChange(options.onChange);
-
-    this.prevColor = ''
+    this.$colorValue.addEventListener("change", this.onColorInputChange.bind(this));
+    this.$colorValue.addEventListener("paste", this.onColorInputChange.bind(this));
+    this.$alphaValue.addEventListener("input", this.onAlphaInputChange.bind(this));
+    this.onChange = debounce(options.onChange, 0);
 
     this.setColor(options.color);
+
+    if (this.$input) {
+      this.$pickerBox.style.display = 'none'
+    }
   }
 
-  setOnChange(onChange = (color) => {}) {
-    this.onChange = debounce(onChange, 0);
+  onColorInputChange() {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        this.setColor(this.getColorValue(), true);
+      })
+    })
+  }
+
+  onAlphaInputChange() {
+    const value = this.$alphaValue.value;
+    this.alphaSliderValue = Math.min(100, Math.max(0, value));
+    this.showCurrentColors();
+    this.showColorValue();
+    this.emitChanges();
+  }
+
+  hideWrapper(event) {
+    const $wrapper = event.target.closest('.ras-color-picker-wrapper')
+    if ($wrapper == this.$wrapper) {
+      return
+    }
+    this.$pickerBox.style.display = 'none'
+  }
+
+  getColorValue() {
+    return `#${this.$colorValue.value.replace(/#/g, '')}`
   }
 
   destroy() {
+    document.removeEventListener('mousedown', this.hideWrapper)
     this.$pickerBox.remove();
     this.onChange = null;
   }
 
   setColor(color, isNotify = false) {
     this.convertColorToValues(color);
-    this.prevColor = this.getCurrentColorHex()
     this.showCurrentColors();
     this.showColorValue();
     this.showAlphaValue();
@@ -83,10 +135,6 @@ export class ColorPicker {
 
   emitChanges() {
     const hex = this.getCurrentColorHex();
-    if (this.prevColor == hex) {
-      return;
-    }
-    this.prevColor = hex;
     this.onChange(hex, this);
   }
 
@@ -112,12 +160,12 @@ export class ColorPicker {
     const rgba = hsvaToRgba(hsva);
     const color = `rgba(${rgba.r}, ${rgba.g}, ${rgba.b})`;
     const colorWithAlpha = `rgba(${rgba.r}, ${rgba.g}, ${rgba.b}, ${rgba.a})`;
-    this.$pickerBox.style.setProperty("--currentColor", color);
-    this.$pickerBox.style.setProperty(
+    this.$wrapper.style.setProperty("--currentColor", color);
+    this.$wrapper.style.setProperty(
       "--currentColorWithAlpha",
       colorWithAlpha
     );
-    this.$pickerBox.style.setProperty(
+    this.$wrapper.style.setProperty(
       "--color",
       `hsl(${this.colorSliderValue}, 100%, 50%)`
     );
@@ -161,7 +209,15 @@ export class ColorPicker {
     this.$colorValue.value = hex;
   }
 
+  preventEvent(event) {
+    if(event.stopPropagation) event.stopPropagation();
+    if(event.preventDefault) event.preventDefault();
+    event.cancelBubble=true;
+    event.returnValue=false;
+  }
+
   onColorPickerMove(event, target) {
+    this.preventEvent(event)
     const box = target.parentNode.getBoundingClientRect();
     const x = Math.min(Math.max(0, event.clientX - box.left), box.width);
     const y = Math.min(Math.max(0, event.clientY - box.top), box.height);
@@ -177,6 +233,7 @@ export class ColorPicker {
   }
 
   onColorLineMove(event, target) {
+    this.preventEvent(event)
     const box = target.parentNode.getBoundingClientRect();
     const x = Math.min(Math.max(0, event.clientX - box.left), box.width);
 
@@ -188,6 +245,7 @@ export class ColorPicker {
   }
 
   onAlphaMove(event, target) {
+    this.preventEvent(event)
     const box = target.parentNode.getBoundingClientRect();
     const x = Math.min(Math.max(0, event.clientX - box.left), box.width);
 
