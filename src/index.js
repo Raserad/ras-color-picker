@@ -24,6 +24,13 @@ export class ColorPicker {
         this.$pickerBox.style.display = 'block'
         requestAnimationFrame(() => {
           this.showCurrentColors()
+          this.$pickerBox.style.position = 'fixed'
+          const wrapperRect = this.$wrapper.getBoundingClientRect()
+          const pickerRect = this.$pickerBox.getBoundingClientRect()
+          this.$pickerBox.style.top = `${wrapperRect.top + wrapperRect.height + 10}px`
+          const difference = wrapperRect.left + pickerRect.width - window.innerWidth
+          this.$pickerBox.style.left = `${wrapperRect.left - (difference > 0 ? difference : 0)}px`
+          console.log('Current difference', difference)
         })
       })
       this.hideWrapper = this.hideWrapper.bind(this)
@@ -57,7 +64,6 @@ export class ColorPicker {
       this.$wrapper.style.display = 'inline-flex'
       this.$wrapper.style.gap = '10px'
       this.$pickerBox.style.position = 'absolute'
-      this.$pickerBox.style.left = 0
       this.$pickerBox.style.top = '100%'
     } else {
       this.$colorValue = $element.querySelector(".ras-color-picker-color-input");
@@ -169,7 +175,7 @@ export class ColorPicker {
       "--color",
       `hsl(${this.colorSliderValue}, 100%, 50%)`
     );
-
+    
     const colorPickerBox = this.$colorPicker.parentElement.getBoundingClientRect();
     this.$colorPicker.style.left = `${
       (this.colorPickerValue.x / 100) * colorPickerBox.width

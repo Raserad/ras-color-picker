@@ -3,6 +3,7 @@
   padding: 20px;
   box-shadow: 4px 4px 8px 0px rgba(34, 60, 80, 0.2);
   background: white;
+  --direction: 90deg;
 }
 .ras-color-picker-area {
   position: relative;
@@ -12,7 +13,7 @@
   margin-bottom: 15px;
   border-radius: 3px 3px 0 0;
   background-image: linear-gradient(rgba(0, 0, 0, 0), #000),
-    linear-gradient(90deg, #fff, var(--color));
+    linear-gradient(var(--direction), #fff, var(--color));
   cursor: pointer;
 }
 .ras-color-picker-line {
@@ -28,7 +29,7 @@
 }
 .ras-color-picker-color-line {
   background-image: linear-gradient(
-    to right,
+    var(--direction),
     red 0,
     #ff0 16.66%,
     #0f0 33.33%,
@@ -63,7 +64,7 @@
   width: 100%;
   height: 100%;
   border-radius: 10px;
-  background-image: linear-gradient(90deg, rgba(0, 0, 0, 0), var(--currentColor));
+  background-image: linear-gradient(var(--direction), rgba(0, 0, 0, 0), var(--currentColor));
 }
 .ras-color-picker-control-point {
   position: absolute;
