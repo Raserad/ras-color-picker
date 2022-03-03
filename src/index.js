@@ -3,17 +3,16 @@ import { template } from "./assets/template";
 import { hsvaToRgba, rgbaToHex, rgbaToHsva, strToRgba, debounce } from "./helpers";
 
 export class ColorPicker {
-  constructor(
-    options = {
-      el: document.createElement("div"),
-      color: "rgba(255, 255, 255, 1)",
-      onChange: (color, picker) => {}
-    }
-  ) {
+  constructor({
+      el = document.createElement("div"),
+      color = "rgba(255, 255, 255, 1)",
+      swatches = [],
+      onChange = (color, picker) => {}
+  }) {
     let $element =
-      typeof options.el === "string"
-        ? document.querySelector(options.el)
-        : options.el;
+      typeof el === "string"
+        ? document.querySelector(el)
+        : el;
     if ($element.tagName == 'INPUT') {
       const $wrapper = document.createElement('div')
       $element.parentNode.insertBefore($wrapper, $element)
@@ -86,13 +85,36 @@ export class ColorPicker {
     this.$colorValue.addEventListener("change", this.onColorInputChange.bind(this));
     this.$colorValue.addEventListener("paste", this.onColorInputChange.bind(this));
     this.$alphaValue.addEventListener("input", this.onAlphaInputChange.bind(this));
-    this.onChange = debounce(options.onChange, 0);
+    this.onChange = debounce(onChange, 0);
 
-    this.setColor(options.color);
+    this.setColor(color);
 
     if (this.$input) {
       this.$pickerBox.style.display = 'none'
     }
+
+    this.swatches = swatches
+
+    this.showSwatches()
+  }
+
+  showSwatches() {
+    const $prevSwatches = this.$pickerBox.querySelector('.ras-color-picker-swatches')
+    if ($prevSwatches) {
+      $prevSwatches.remove()
+    }
+    const $swatches = document.createElement('div')
+    $swatches.classList.add('ras-color-picker-swatches')
+
+    this.swatches.forEach(swatch => {
+      const $swatch = document.createElement('div')
+      $swatch.classList.add('ras-color-picker-swatch-item')
+      $swatch.onclick = () => this.setColor(swatch, true)
+      $swatch.style.backgroundColor = swatch
+      $swatches.append($swatch)
+    })
+
+    this.$pickerBox.append($swatches)
   }
 
   onColorInputChange() {
