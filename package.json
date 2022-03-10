@@ -1,6 +1,6 @@
 {
   "name": "ras-color-picker",
-  "version": "0.0.18",
+  "version": "0.0.19",
   "description": "Color picker library",
   "main": "src/index.js",
   "types": "types/index.d.ts",
