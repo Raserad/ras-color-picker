@@ -1,6 +1,6 @@
 export class ColorPicker {
     constructor(options?: {
-        el?: HTMLDivElement | string;
+        el?: HTMLElement | string;
         color?: string;
         swatches?: string[];
         onChange?: (color: string, picker: ColorPicker) => void;
