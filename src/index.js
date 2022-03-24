@@ -1,6 +1,6 @@
 import "./assets/styles.css";
 import { template } from "./assets/template";
-import { hsvaToRgba, rgbaToHex, rgbaToHsva, strToRgba, debounce } from "./helpers";
+import { hsvaToRgba, rgbaToHex, rgbaToHsva, strToRgba } from "./helpers";
 
 export class ColorPicker {
   constructor({
@@ -29,7 +29,6 @@ export class ColorPicker {
           this.$pickerBox.style.top = `${wrapperRect.top + wrapperRect.height + 10}px`
           const difference = wrapperRect.left + pickerRect.width - window.innerWidth
           this.$pickerBox.style.left = `${wrapperRect.left - (difference > 0 ? difference : 0)}px`
-          console.log('Current difference', difference)
         })
       })
       this.hideWrapper = this.hideWrapper.bind(this)
@@ -85,7 +84,7 @@ export class ColorPicker {
     this.$colorValue.addEventListener("change", this.onColorInputChange.bind(this));
     this.$colorValue.addEventListener("paste", this.onColorInputChange.bind(this));
     this.$alphaValue.addEventListener("input", this.onAlphaInputChange.bind(this));
-    this.onChange = debounce(onChange, 0);
+    this.onChange = onChange;
 
     this.setColor(color);
 
@@ -152,6 +151,10 @@ export class ColorPicker {
   }
 
   setColor(color, isNotify = false) {
+    if (this.prevColor === color) {
+      return
+    }
+    this.prevColor = color
     this.convertColorToValues(color);
     this.showCurrentColors();
     this.showColorValue();
@@ -163,6 +166,7 @@ export class ColorPicker {
 
   emitChanges() {
     const hex = this.getCurrentColorHex();
+    this.prevColor = hex;
     this.onChange(hex, this);
   }
 

@@ -1,4 +1,12 @@
 export function strToRgba(str) {
+  if (!str || !str.trim()) {
+    return {
+      r: 0,
+      g: 0,
+      b: 0,
+      a: 0
+    };
+  }
   const regex = /^((rgba)|rgb)[\D]+([\d.]+)[\D]+([\d.]+)[\D]+([\d.]+)[\D]*?([\d.]+|$)/i;
   let match, rgba;
 
