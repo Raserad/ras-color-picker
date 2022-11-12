@@ -9,6 +9,8 @@ export class ColorPicker {
       swatches = [],
       onChange = (color, picker) => {}
   }) {
+    this.recalculateWrapperPosition = this.recalculateWrapperPosition.bind(this)
+    this.checkScrollable = this.checkScrollable.bind(this)
     let $element =
       typeof el === "string"
         ? document.querySelector(el)
@@ -23,12 +25,8 @@ export class ColorPicker {
         this.$pickerBox.style.display = 'block'
         requestAnimationFrame(() => {
           this.showCurrentColors()
-          this.$pickerBox.style.position = 'fixed'
-          const wrapperRect = this.$wrapper.getBoundingClientRect()
-          const pickerRect = this.$pickerBox.getBoundingClientRect()
-          this.$pickerBox.style.top = `${wrapperRect.top + wrapperRect.height + 10}px`
-          const difference = wrapperRect.left + pickerRect.width - window.innerWidth
-          this.$pickerBox.style.left = `${wrapperRect.left - (difference > 0 ? difference : 0)}px`
+          this.recalculateWrapperPosition()
+          this.checkScrollable()
         })
       })
       this.hideWrapper = this.hideWrapper.bind(this)
@@ -39,11 +37,15 @@ export class ColorPicker {
     } else {
       this.$wrapper = $element
     }
+
     this.$wrapper.classList.add('ras-color-picker-wrapper')
     $element.innerHTML = template;
     this.$pickerBox = $element.querySelector(".ras-color-picker");
     this.$colorPicker = $element.querySelector(
       ".ras-color-picker-area .ras-color-picker-control-point"
+    );
+    this.$colorPickerIndicator = $element.querySelector(
+      ".ras-color-picker-indicator"
     );
     this.$colorSlider = $element.querySelector(
       ".ras-color-picker-color-line .ras-color-picker-control-point"
@@ -81,9 +83,15 @@ export class ColorPicker {
       this.onMouseDown.bind(this)
     );
 
-    this.$colorValue.addEventListener("change", this.onColorInputChange.bind(this));
-    this.$colorValue.addEventListener("paste", this.onColorInputChange.bind(this));
-    this.$alphaValue.addEventListener("input", this.onAlphaInputChange.bind(this));
+    window.addEventListener('resize', this.recalculateWrapperPosition, false)
+
+    if (this.$input) {
+      this.$colorPickerIndicator.addEventListener('click', this.focusInput.bind(this))
+    }
+
+    this.$colorValue.addEventListener("change", this.onColorInputChange.bind(this))
+    this.$colorValue.addEventListener("paste", this.onColorInputChange.bind(this))
+    this.$alphaValue.addEventListener("change", this.onAlphaInputChange.bind(this))
     this.onChange = onChange;
 
     this.setColor(color);
@@ -94,7 +102,44 @@ export class ColorPicker {
 
     this.swatches = swatches
 
+    this.isAlphaChanged = false
+
     this.showSwatches()
+  }
+
+  getScrollParent(node) {
+    if (node == null) {
+      return null;
+    }
+  
+    if (node.scrollHeight > node.clientHeight) {
+      return node;
+    }
+
+    return this.getScrollParent(node.parentNode);
+  }
+
+  checkScrollable() {
+    this.$scrollParent = this.getScrollParent(this.$wrapper)
+    this.$scrollParent.addEventListener('scroll', this.recalculateWrapperPosition)
+  }
+
+  focusInput() {
+    if (!this.$input) {
+      return;
+    }
+    this.$input.focus()
+  }
+
+  recalculateWrapperPosition() {
+    this.$pickerBox.style.position = 'fixed'
+    const wrapperRect = this.$wrapper.getBoundingClientRect()
+    const pickerRect = this.$pickerBox.getBoundingClientRect()
+    const differenceTop = wrapperRect.top + wrapperRect.height + pickerRect.height + 10 - window.innerHeight
+    console.log("Current difference", differenceTop, pickerRect.height);
+    this.$pickerBox.style.top = `${wrapperRect.top + wrapperRect.height + 10 - (differenceTop > 0 ? differenceTop : 0)}px`
+    const differenceLeft = wrapperRect.left + (pickerRect.width + 20) - window.innerWidth
+    this.$pickerBox.style.left = `${wrapperRect.left - (differenceLeft > 0 ? differenceLeft : 0)}px`
   }
 
   showSwatches() {
@@ -116,22 +161,6 @@ export class ColorPicker {
     this.$pickerBox.append($swatches)
   }
 
-  onColorInputChange() {
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        this.setColor(this.getColorValue(), true);
-      })
-    })
-  }
-
-  onAlphaInputChange() {
-    const value = this.$alphaValue.value;
-    this.alphaSliderValue = Math.min(100, Math.max(0, value));
-    this.showCurrentColors();
-    this.showColorValue();
-    this.emitChanges();
-  }
-
   hideWrapper(event) {
     const $wrapper = event.target.closest('.ras-color-picker-wrapper')
     if ($wrapper == this.$wrapper) {
@@ -141,10 +170,17 @@ export class ColorPicker {
   }
 
   getColorValue() {
+    if (!this.$colorValue.value) {
+      return ''
+    }
     return `#${this.$colorValue.value.replace(/#/g, '')}`
   }
 
   destroy() {
+    if (this.$scrollParent) {
+      this.$scrollParent.removeEventListener('scroll', this.recalculateWrapperPosition);
+    }
+    window.removeEventListener('resize', this.recalculateWrapperPosition)
     document.removeEventListener('mousedown', this.hideWrapper)
     this.$pickerBox.remove();
     this.onChange = null;
@@ -248,6 +284,32 @@ export class ColorPicker {
     event.returnValue=false;
   }
 
+  correctAlphaOnColorChange() {
+    if (this.alphaSliderValue > 0 || this.isAlphaChanged) {
+      return;
+    }
+
+    this.alphaSliderValue = 100;
+  }
+
+  onAlphaInputChange() {
+    const value = this.$alphaValue.value;
+    this.alphaSliderValue = Math.min(100, Math.max(0, value));
+    this.isAlphaChanged = true;
+    this.showCurrentColors();
+    this.showColorValue();
+    this.showAlphaValue();
+    this.emitChanges();
+  }
+
+  onColorInputChange() {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        this.setColor(this.getColorValue(), true);
+      })
+    })
+  }
+
   onColorPickerMove(event, target) {
     this.preventEvent(event)
     const box = target.parentNode.getBoundingClientRect();
@@ -258,6 +320,7 @@ export class ColorPicker {
       x: (x / box.width) * 100,
       y: 100 - (y / box.height) * 100
     };
+    this.correctAlphaOnColorChange();
     this.showCurrentColors();
     this.showColorValue();
     this.showAlphaValue();
@@ -270,6 +333,7 @@ export class ColorPicker {
     const x = Math.min(Math.max(0, event.clientX - box.left), box.width);
 
     this.colorSliderValue = Math.round((x / box.width) * 100 * 3.6);
+    this.correctAlphaOnColorChange();
     this.showCurrentColors();
     this.showColorValue();
     this.showAlphaValue();
@@ -282,6 +346,7 @@ export class ColorPicker {
     const x = Math.min(Math.max(0, event.clientX - box.left), box.width);
 
     this.alphaSliderValue = Math.round((x / box.width) * 100);
+    this.isAlphaChanged = true;
     this.showCurrentColors();
     this.showColorValue();
     this.showAlphaValue();

@@ -17,7 +17,7 @@ export const template = `
   </div>
   <div class="ras-color-picker-inputs">
     <div class="ras-color-picker-current-color ras-color-picker-alpha-bg">
-      <div class="ras-color-picker-color-alpha"></div>
+      <div class="ras-color-picker-color-alpha ras-color-picker-indicator"></div>
     </div>
     <input class="ras-color-picker-input ras-color-picker-color-input" />
   </div>
