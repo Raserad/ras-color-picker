@@ -53,6 +53,9 @@ export class ColorPicker {
     this.$alphaSlider = $element.querySelector(
       ".ras-color-picker-alpha-line .ras-color-picker-control-point"
     );
+    this.$pipette = $element.querySelector(
+      ".ras-color-picker-pipette"
+    );
     if (this.$input) {
       this.$colorValue = this.$input
       $element.querySelector(".ras-color-picker-color-input").remove()
@@ -69,6 +72,19 @@ export class ColorPicker {
       this.$colorValue = $element.querySelector(".ras-color-picker-color-input");
     }
     this.$alphaValue = $element.querySelector(".ras-color-picker-alpha-input");
+
+    if (window.EyeDropper) {
+      this.pipette = new window.EyeDropper()
+      this.$pipette.onclick = () => {
+        if (this.pipette) {
+          this.pipette.open().then((result) => {
+            this.setColor(result.sRGBHex, true)
+          })
+        }
+      }
+    } else {
+      this.$pipette.remove();
+    }
 
     this.$colorPicker.parentElement.addEventListener(
       "mousedown",

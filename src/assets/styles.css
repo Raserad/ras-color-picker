@@ -155,3 +155,20 @@
   cursor: pointer;
   box-shadow: 2px 3px 6px 0px rgb(34 60 80 / 20%);
 }
+
+.ras-color-picker-pipette {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+.ras-color-picker-row .ras-color-picker-color-line {
+  display: flex;
+  flex: 1;
+}
+
+.ras-color-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
