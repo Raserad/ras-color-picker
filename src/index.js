@@ -15,7 +15,9 @@ export class ColorPicker {
       typeof el === "string"
         ? document.querySelector(el)
         : el;
-    if ($element.tagName == 'INPUT') {
+
+    this.isInput = $element.tagName == 'INPUT';
+    if (this.isInput) {
       const $wrapper = document.createElement('div')
       $element.parentNode.insertBefore($wrapper, $element)
       $wrapper.appendChild($element)
@@ -148,12 +150,18 @@ export class ColorPicker {
   }
 
   recalculateWrapperPosition() {
+    if (!this.isInput) {
+      return;
+    }
     this.$pickerBox.style.position = 'fixed'
     const wrapperRect = this.$wrapper.getBoundingClientRect()
     const pickerRect = this.$pickerBox.getBoundingClientRect()
     const differenceTop = wrapperRect.top + wrapperRect.height + pickerRect.height + 10 - window.innerHeight
-    console.log("Current difference", differenceTop, pickerRect.height);
-    this.$pickerBox.style.top = `${wrapperRect.top + wrapperRect.height + 10 - (differenceTop > 0 ? differenceTop : 0)}px`
+    if (differenceTop > 0) {
+      this.$pickerBox.style.top = `${wrapperRect.top - pickerRect.height - 10}px`
+    } else {
+      this.$pickerBox.style.top = `${wrapperRect.top + wrapperRect.height + 10}px` 
+    }
     const differenceLeft = wrapperRect.left + (pickerRect.width + 20) - window.innerWidth
     this.$pickerBox.style.left = `${wrapperRect.left - (differenceLeft > 0 ? differenceLeft : 0)}px`
   }
@@ -211,6 +219,7 @@ export class ColorPicker {
     this.showCurrentColors();
     this.showColorValue();
     this.showAlphaValue();
+    this.recalculateWrapperPosition();
     if (isNotify) {
       this.emitChanges()
     }
