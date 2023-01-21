@@ -7,30 +7,28 @@ export class ColorPicker {
       el = document.createElement("div"),
       color = "rgba(255, 255, 255, 1)",
       swatches = [],
+      scrollParentSelector = '',
       onChange = (color, picker) => {}
   }) {
     this.recalculateWrapperPosition = this.recalculateWrapperPosition.bind(this)
+    this.checkScrolling = this.checkScrolling.bind(this)
     this.checkScrollable = this.checkScrollable.bind(this)
+    this.showColorPicker = this.showColorPicker.bind(this)
+    this.hideColorPicker = this.hideColorPicker.bind(this)
     let $element =
       typeof el === "string"
         ? document.querySelector(el)
         : el;
 
-    this.isInput = $element.tagName == 'INPUT';
+    this.scrollParentSelector = scrollParentSelector
+    this.isInput = $element.tagName == 'INPUT'
     if (this.isInput) {
       const $wrapper = document.createElement('div')
       $element.parentNode.insertBefore($wrapper, $element)
       $wrapper.appendChild($element)
       this.$input = $element
-      this.$input.addEventListener('focus', () => {
-        this.$pickerBox.style.zIndex = 99
-        this.$pickerBox.style.display = 'block'
-        requestAnimationFrame(() => {
-          this.showCurrentColors()
-          this.recalculateWrapperPosition()
-          this.checkScrollable()
-        })
-      })
+      this.$input.addEventListener('focus', this.showColorPicker)
+      this.$input.addEventListener('click', this.showColorPicker)
       this.hideWrapper = this.hideWrapper.bind(this)
       document.addEventListener('mousedown', this.hideWrapper)
       $element = document.createElement('div')
@@ -129,6 +127,10 @@ export class ColorPicker {
     if (node == null) {
       return null;
     }
+
+    if (this.scrollParentSelector) {
+      return node.closest(this.scrollParentSelector);
+    }
   
     if (node.scrollHeight > node.clientHeight) {
       return node;
@@ -138,8 +140,28 @@ export class ColorPicker {
   }
 
   checkScrollable() {
+    if (this.$scrollParent) {
+      this.$scrollParent.removeEventListener('scroll', this.recalculateWrapperPosition);
+    }
     this.$scrollParent = this.getScrollParent(this.$wrapper)
-    this.$scrollParent.addEventListener('scroll', this.recalculateWrapperPosition)
+    this.$scrollParent.addEventListener('scroll', this.checkScrolling)
+  }
+
+  showColorPicker() {
+    if (this.$pickerBox.style.display == 'block') {
+      return;
+    }
+    this.$pickerBox.style.zIndex = 99
+    this.$pickerBox.style.display = 'block'
+    requestAnimationFrame(() => {
+      this.showCurrentColors()
+      this.recalculateWrapperPosition()
+      this.checkScrollable()
+    })
+  }
+
+  hideColorPicker() {
+    this.$pickerBox.style.display = 'none';
   }
 
   focusInput() {
@@ -147,6 +169,10 @@ export class ColorPicker {
       return;
     }
     this.$input.focus()
+  }
+
+  checkScrolling() {
+    this.hideColorPicker();
   }
 
   recalculateWrapperPosition() {
